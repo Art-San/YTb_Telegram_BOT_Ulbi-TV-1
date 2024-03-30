@@ -44,18 +44,21 @@ const start = async () => {
 
     try {
       if (text === '/start') {
-        const oldUser = await UserModel.findOne({ chatId: chatId })
-
-        if (!oldUser) {
-          await UserModel.create({ chatId: chatId })
-
-          await bot.sendSticker(
-            chatId,
-            'https://tlgrm.ru/_/stickers/343/879/34387965-f2d4-4e99-b9e9-85e53b0dbd1f/10.jpg'
-          )
-          return bot.sendMessage(chatId, 'Добро пожаловать в наш бот')
-        }
-        return bot.sendMessage(chatId, 'А вы ранее уже тут были')
+        // const oldUser = await UserModel.findOne({
+        //   where: {
+        //     chatId: chatId
+        //   }
+        // })
+        // console.log(1, oldUser)
+        // if (!oldUser) {
+        //   await UserModel.create({ chatId: chatId })
+        //   await bot.sendSticker(
+        //     chatId,
+        //     'https://tlgrm.ru/_/stickers/343/879/34387965-f2d4-4e99-b9e9-85e53b0dbd1f/10.jpg'
+        //   )
+        //   return bot.sendMessage(chatId, 'Добро пожаловать в наш бот')
+        // }
+        return bot.sendMessage(chatId, 'Команда старт работает только раз')
       }
 
       if (text === '/info') {
