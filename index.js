@@ -1,8 +1,8 @@
 import TelegramBot from 'node-telegram-bot-api'
 import * as dotenv from 'dotenv'
 import { gameOptions, againOptions } from './options.js'
-import { sequelize } from './db.js'
-import UserModel from './models.js'
+import './db/connectMongoDB.js'
+import User from './db/models.js'
 
 dotenv.config()
 // telegram-bot-game
@@ -17,7 +17,7 @@ const startGame = async (chatId) => {
   )
 
   const randomNumber = Math.floor(Math.random() * 10)
-  console.log(1, randomNumber)
+  // console.log(1, randomNumber)
   chats[chatId] = randomNumber
 
   await bot.sendMessage(chatId, `Отгадай`, gameOptions)
@@ -25,11 +25,9 @@ const startGame = async (chatId) => {
 
 const start = async () => {
   try {
-    await sequelize.authenticate()
     console.log('Соединение успешно установлено.')
-    await sequelize.sync()
   } catch (error) {
-    console.log(0, 'Подключение к БД сломалось', error.message)
+    console.log(0, 'Подключение к БД сломалось')
   }
 
   bot.setMyCommands([
@@ -44,29 +42,28 @@ const start = async () => {
 
     try {
       if (text === '/start') {
-        // const oldUser = await UserModel.findOne({
-        //   where: {
-        //     chatId: chatId
-        //   }
-        // })
-        // console.log(1, oldUser)
-        // if (!oldUser) {
-        //   await UserModel.create({ chatId: chatId })
-        //   await bot.sendSticker(
-        //     chatId,
-        //     'https://tlgrm.ru/_/stickers/343/879/34387965-f2d4-4e99-b9e9-85e53b0dbd1f/10.jpg'
-        //   )
-        //   return bot.sendMessage(chatId, 'Добро пожаловать в наш бот')
-        // }
+        // await User.create({ chatId: chatId })
+        const oldUser = await User.findOne({ chatId })
+        console.log(0, oldUser)
+
+        if (!oldUser) {
+          await bot.sendPhoto(
+            chatId,
+            'https://tlgrm.ru/_/stickers/343/879/34387965-f2d4-4e99-b9e9-85e53b0dbd1f/10.jpg'
+          )
+          return bot.sendMessage(chatId, 'Добро пожаловать в наш бот')
+        }
+
         return bot.sendMessage(chatId, 'Команда старт работает только раз')
       }
 
       if (text === '/info') {
-        const user = await UserModel.findOne({ chatId: chatId })
+        // const user = await UserModel.findOne({ chatId: chatId })
 
         return bot.sendMessage(
           chatId,
-          ` ${msg.from.first_name}, у тебя неправильных ответов ${user.right}, а правильных ${user.wrong}`
+          ` ${msg.from.first_name}, `
+          // ` ${msg.from.first_name}, у тебя неправильных ответов ${user.right}, а правильных ${user.wrong}`
         )
       }
       if (text === '/game') {
