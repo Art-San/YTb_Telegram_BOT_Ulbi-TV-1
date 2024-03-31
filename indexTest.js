@@ -9,6 +9,27 @@ dotenv.config()
 const chats = {}
 console.log(0, 'chats', chats)
 
+// ===================== отдельные fun  =====================
+// const startGame = async (chatId) => {
+//   await bot.sendMessage(
+//     chatId,
+//     `Сейчас я загадай цифру от 0 до 9, а ты ее должен угадать`
+//   )
+//   const randomNumber = Math.floor(Math.random() * 10)
+//   chats[chatId] = randomNumber
+//   await bot.sendMessage(chatId, `Отгадай`, gameOptions)
+// }
+
+// const getUser = async (chatId) => {
+//   try {
+//     const user = await prisma.user.findUnique({ where: { chatId } })
+//     return user
+//   } catch (error) {
+//     console.log('Ошибка в getUser', error)
+//     return error
+//   }
+// }
+
 // ====================== Module BOTa =====================
 const start = async () => {
   bot.setMyCommands([
@@ -48,9 +69,7 @@ const start = async () => {
       }
 
       if (text === '/info') {
-        // const user = await prisma.user.findUnique({ where: { chatId } })
-
-        const user = await getUser(chatId)
+        const user = await prisma.user.findUnique({ where: { chatId } })
 
         return bot.sendMessage(
           chatId,
@@ -77,8 +96,7 @@ const start = async () => {
       return startGame(chatId)
     }
 
-    // const user = await prisma.user.findUnique({ where: { chatId } })
-    const user = await getUser(chatId)
+    const user = await prisma.user.findUnique({ where: { chatId } })
 
     if (data === String(chats[chatId])) {
       user.right += 1
@@ -109,7 +127,6 @@ const start = async () => {
   })
 }
 
-// ===================== отдельные fun  =====================
 async function startGame(chatId) {
   await bot.sendMessage(
     chatId,
