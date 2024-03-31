@@ -9,7 +9,7 @@ dotenv.config()
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true })
 
 const chats = {}
-
+console.log(0, 'chats', chats)
 const startGame = async (chatId) => {
   await bot.sendMessage(
     chatId,
@@ -17,7 +17,7 @@ const startGame = async (chatId) => {
   )
 
   const randomNumber = Math.floor(Math.random() * 10)
-  console.log(1, randomNumber)
+  // console.log(1, 'randomNumber', randomNumber)
   chats[chatId] = randomNumber
 
   await bot.sendMessage(chatId, `Отгадай`, gameOptions)
@@ -50,15 +50,13 @@ const start = async () => {
         //   }
         // })
         // console.log(1, oldUser)
-        // if (!oldUser) {
-        //   await UserModel.create({ chatId: chatId })
-        //   await bot.sendSticker(
-        //     chatId,
-        //     'https://tlgrm.ru/_/stickers/343/879/34387965-f2d4-4e99-b9e9-85e53b0dbd1f/10.jpg'
-        //   )
-        //   return bot.sendMessage(chatId, 'Добро пожаловать в наш бот')
-        // }
-        return bot.sendMessage(chatId, 'Команда старт работает только раз')
+
+        await UserModel.create({ chatId: chatId })
+        await bot.sendSticker(
+          chatId,
+          'https://tlgrm.ru/_/stickers/343/879/34387965-f2d4-4e99-b9e9-85e53b0dbd1f/10.jpg'
+        )
+        return bot.sendMessage(chatId, 'Добро пожаловать в наш бот')
       }
 
       if (text === '/info') {
@@ -66,7 +64,8 @@ const start = async () => {
 
         return bot.sendMessage(
           chatId,
-          ` ${msg.from.first_name}, у тебя неправильных ответов ${user.right}, а правильных ${user.wrong}`
+          // ` ${msg.from.first_name}`user.wrong
+          ` ${msg.from.first_name}, у тебя неправильных ответов ${user.wrong}, а правильных ${user.right}`
         )
       }
       if (text === '/game') {
@@ -86,14 +85,20 @@ const start = async () => {
       return startGame(chatId)
     }
 
-    // console.log(2, typeof chats[chatId])
+    const user = await UserModel.findOne({ chatId: chatId })
+
+    // console.log(2, user)
     if (data === String(chats[chatId])) {
+      user.right += 1
+      await user.save()
       return await bot.sendMessage(
         chatId,
         `Поздравляю, ты угадал цифру ${chats[chatId]}`,
         againOptions
       )
     } else {
+      user.wrong += 1
+      await user.save()
       return await bot.sendMessage(
         chatId,
         `Ты не угадал цифру ${chats[chatId]}`,
