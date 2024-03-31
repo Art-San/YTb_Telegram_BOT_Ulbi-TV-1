@@ -1,3 +1,4 @@
+import connectMongoDB from './db/connectMongoDB.js'
 import TelegramBot from 'node-telegram-bot-api'
 import * as dotenv from 'dotenv'
 import { gameOptions, againOptions } from './options.js'
@@ -24,11 +25,12 @@ const startGame = async (chatId) => {
 }
 
 const start = async () => {
-  try {
-    console.log('Соединение успешно установлено.')
-  } catch (error) {
-    console.log(0, 'Подключение к БД сломалось')
-  }
+  connectMongoDB()
+  // try {
+  //   console.log('Соединение успешно установлено.')
+  // } catch (error) {
+  //   console.log(0, 'Подключение к БД сломалось')
+  // }
 
   bot.setMyCommands([
     { command: '/start', description: 'Начальное приветствие' },
@@ -42,11 +44,11 @@ const start = async () => {
 
     try {
       if (text === '/start') {
-        // await User.create({ chatId: chatId })
         const oldUser = await User.findOne({ chatId })
         console.log(0, oldUser)
 
         if (!oldUser) {
+          await User.create({ chatId: chatId })
           await bot.sendPhoto(
             chatId,
             'https://tlgrm.ru/_/stickers/343/879/34387965-f2d4-4e99-b9e9-85e53b0dbd1f/10.jpg'
@@ -58,12 +60,13 @@ const start = async () => {
       }
 
       if (text === '/info') {
-        // const user = await UserModel.findOne({ chatId: chatId })
+        const user = await User.findOne({ chatId })
+        console.log(0, user)
 
         return bot.sendMessage(
           chatId,
-          ` ${msg.from.first_name}, `
-          // ` ${msg.from.first_name}, у тебя неправильных ответов ${user.right}, а правильных ${user.wrong}`
+          // ` ${msg.from.first_name}, `
+          ` ${msg.from.first_name}, у тебя неправильных ответов ${user.wrong}, а правильных ${user.right}`
         )
       }
       if (text === '/game') {
@@ -83,20 +86,27 @@ const start = async () => {
       return startGame(chatId)
     }
 
+    const user = await User.findOne({ chatId })
+
     // console.log(2, typeof chats[chatId])
     if (data === String(chats[chatId])) {
-      return await bot.sendMessage(
+      user.right += 1
+      // await user.save()
+      await bot.sendMessage(
         chatId,
         `Поздравляю, ты угадал цифру ${chats[chatId]}`,
         againOptions
       )
     } else {
-      return await bot.sendMessage(
+      user.wrong += 1
+      // await user.save()
+      await bot.sendMessage(
         chatId,
         `Ты не угадал цифру ${chats[chatId]}`,
         againOptions
       )
     }
+    await user.save()
   })
 }
 
